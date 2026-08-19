@@ -98,7 +98,7 @@ The primary user is an **e-commerce customer** who:
               Add to     Reject
                Cart      Request
 
----
+---```
 
 ## Functional Requirements
 

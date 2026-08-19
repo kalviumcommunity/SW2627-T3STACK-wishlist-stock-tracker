@@ -1,11 +1,10 @@
 # Wishlist Stock Tracker
 
-[![README](https://img.shields.io/badge/README-Project-blue?style=for-the-badge)](README.md)
-[![Team Work](https://img.shields.io/badge/Team%20Work-Responsibilities-green?style=for-the-badge)](TEAM_WORK.md)
+> An e-commerce wishlist and stock monitoring system.
+
+**[📖 Project README](README.md)** · **[👥 Team Work Division](TEAM_WORK.md)**
 
 ---
-
-# Wishlist Stock Tracker
 
 A full-stack web application built for **Simulated Work — Semester 3, Sprint 1, Team 05**.
 

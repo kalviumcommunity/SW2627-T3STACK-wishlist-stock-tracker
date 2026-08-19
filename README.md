@@ -98,7 +98,8 @@ The primary user is an **e-commerce customer** who:
               Add to     Reject
                Cart      Request
 
----```
+---
+```
 
 ## Functional Requirements
 
@@ -161,6 +162,7 @@ Do NOT check:
 ├── Product D ❌
 ├── Product E ❌
 └── Product F ❌
+```
 
 # Product Requirements Document (PRD)
 
@@ -365,3 +367,4 @@ User A
 User B
  ├── Wishlist B
  └── Cart B
+```

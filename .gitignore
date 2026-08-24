@@ -1,1 +1,8 @@
 node_modules/
+.next/
+.env*
+!.env.example
+app/generated/
+# AI assistant instructions
+AGENTS.md
+CLAUDE.md

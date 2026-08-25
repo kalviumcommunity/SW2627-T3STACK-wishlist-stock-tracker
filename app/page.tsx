@@ -3,7 +3,7 @@ import Cart from "@/components/Cart";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[#f8fafc] px-4 py-12 md:py-20 text-slate-900 selection:bg-blue-100 selection:text-blue-900">
+    <div className="py-12 md:py-20 text-slate-900 selection:bg-blue-100 selection:text-blue-900">
       <div className="mx-auto max-w-6xl">
         <header className="mb-12 text-center md:text-left">
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900">
@@ -23,6 +23,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

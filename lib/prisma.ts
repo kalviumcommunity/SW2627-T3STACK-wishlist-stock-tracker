@@ -1,5 +1,6 @@
-import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/app/generated/prisma/client";
+import { PrismaLibSql } from "@prisma/adapter-libsql";
+import { createClient } from "@libsql/client";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -8,14 +9,12 @@ const globalForPrisma = globalThis as unknown as {
 export function getPrisma() {
   if (globalForPrisma.prisma) return globalForPrisma.prisma;
 
-  const databaseUrl = process.env.DATABASE_URL;
-  if (!databaseUrl) {
-    throw new Error("DATABASE_URL is not configured");
-  }
-
-  const prisma = new PrismaClient({
-    adapter: new PrismaPg({ connectionString: databaseUrl }),
+  const libsql = createClient({
+    url: process.env.DATABASE_URL || "file:./dev.db",
   });
+  const adapter = new PrismaLibSql(libsql);
+  const prisma = new PrismaClient({ adapter });
+
   if (process.env.NODE_ENV !== "production") {
     globalForPrisma.prisma = prisma;
   }

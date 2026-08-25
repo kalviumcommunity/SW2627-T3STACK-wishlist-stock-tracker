@@ -19,5 +19,21 @@ model User {
   passwordHash String   @map("password_hash")
   createdAt    DateTime @default(now()) @map("created_at")
 
+  wishlistItems WishlistItem[]
+
   @@map("users")
+}
+
+model WishlistItem {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productName String   @map("product_name")
+  price       Float
+  imageUrl    String?  @map("image_url")
+  brand       String?
+  inStock     Boolean  @default(true) @map("in_stock")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("wishlist_items")
 }

@@ -3,7 +3,7 @@
 import { useStore } from "./StoreProvider";
 
 export default function Cart() {
-  const { cart, removeFromCart } = useStore();
+  const { cart, removeFromCart, updateQuantity } = useStore();
 
   const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = cart.reduce((sum, item) => sum + (item.priceValue * item.quantity), 0);
@@ -47,9 +47,21 @@ export default function Cart() {
                     </button>
                   </div>
                   <div className="mt-4 flex items-center gap-2">
-                    <span className="font-bold border border-black px-4 py-1 text-center bg-white">
-                      Qty: {item.quantity}
+                    <button 
+                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                      className="px-3 py-1 bg-black text-white font-bold border border-black"
+                    >
+                      -
+                    </button>
+                    <span className="font-bold border border-black px-4 py-1 text-center min-w-[3rem] bg-white">
+                      {item.quantity}
                     </span>
+                    <button 
+                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                      className="px-3 py-1 bg-black text-white font-bold border border-black"
+                    >
+                      +
+                    </button>
                   </div>
                   <div className="mt-4 pt-2 border-t border-black flex justify-between">
                     <span className="font-bold">Total:</span>

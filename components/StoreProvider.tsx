@@ -23,6 +23,7 @@ type StoreContextType = {
   removeFromWishlist: (productId: string) => void;
   addToCart: (product: Product) => void;
   removeFromCart: (productId: string) => void;
+  updateQuantity: (productId: string, quantity: number) => void;
   isInWishlist: (productId: string) => boolean;
 };
 
@@ -122,6 +123,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     showNotification("Removed item from Cart");
   };
 
+  const updateQuantity = (productId: string, newQuantity: number) => {
+    if (newQuantity <= 0) return;
+    setCart((prev) =>
+      prev.map((item) => (item.id === productId ? { ...item, quantity: newQuantity } : item))
+    );
+  };
+
   return (
     <StoreContext.Provider
       value={{
@@ -134,6 +142,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         removeFromWishlist,
         addToCart,
         removeFromCart,
+        updateQuantity,
         isInWishlist
       }}
     >

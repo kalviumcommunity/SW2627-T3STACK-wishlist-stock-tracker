@@ -8,6 +8,7 @@ const links = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/wishlist", label: "Wishlist" },
   { href: "/stocks", label: "Stocks" },
+  { href: "/cart", label: "Cart" },
 ];
 
 export default function Navbar() {

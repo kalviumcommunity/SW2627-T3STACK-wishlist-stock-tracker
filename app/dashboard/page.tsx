@@ -70,7 +70,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
           <Link
             href="/wishlist"
             className="block border border-black bg-black p-6 text-white hover:bg-gray-800"
@@ -84,6 +84,13 @@ export default function DashboardPage() {
           >
             <h3 className="text-2xl font-bold">Stock Tracker</h3>
             <p className="text-white mt-2 font-medium">Monitor which items are in stock or sold out</p>
+          </Link>
+          <Link
+            href="/cart"
+            className="block border border-black bg-black p-6 text-white hover:bg-gray-800"
+          >
+            <h3 className="text-2xl font-bold">Your Cart</h3>
+            <p className="text-white mt-2 font-medium">Review your items and proceed to checkout</p>
           </Link>
         </div>
 

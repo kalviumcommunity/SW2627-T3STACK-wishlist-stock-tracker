@@ -1,55 +1,38 @@
 import { hash } from "bcryptjs";
 import { NextResponse } from "next/server";
-import { getPrisma } from "@/lib/prisma";
-
-function invalidInput(name: unknown, email: unknown, password: unknown) {
-  return (
-    typeof name !== "string" ||
-    name.trim().length < 2 ||
-    typeof email !== "string" ||
-    !/^\S+@\S+\.\S+$/.test(email) ||
-    typeof password !== "string" ||
-    password.length < 8
-  );
-}
+import { getDb, generateId } from "@/lib/db";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, password } = body as {
-      name?: unknown;
-      email?: unknown;
-      password?: unknown;
-    };
-    const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
+    const name = typeof body.name === "string" ? body.name.trim() : "";
+    const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+    const password = typeof body.password === "string" ? body.password : "";
 
-    if (invalidInput(name, normalizedEmail, password)) {
+    if (name.length < 2 || !/^\S+@\S+\.\S+$/.test(email) || password.length < 8) {
       return NextResponse.json(
         { error: "Name, valid email, and password of at least 8 characters are required" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
-    const prisma = getPrisma();
-    const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
-    if (existingUser) {
+    const db = getDb();
+    const existing = db.prepare("SELECT id FROM users WHERE email = ?").get(email);
+    if (existing) {
       return NextResponse.json({ error: "Email is already registered" }, { status: 409 });
     }
 
-    const user = await prisma.user.create({
-      data: {
-        name: (name as string).trim(),
-        email: normalizedEmail,
-        passwordHash: await hash(password as string, 12),
-      },
-      select: { id: true, name: true, email: true },
-    });
+    const id = generateId();
+    const passwordHash = await hash(password, 12);
+    db.prepare(
+      "INSERT INTO users (id, name, email, password_hash) VALUES (?, ?, ?, ?)"
+    ).run(id, name, email, passwordHash);
 
     return NextResponse.json(
-      { message: "User registered successfully", user },
-      { status: 201 },
+      { message: "User registered successfully", user: { id, name, email } },
+      { status: 201 }
     );
-  } catch {
+  } catch (err: any) {
     return NextResponse.json({ error: "Unable to register user" }, { status: 500 });
   }
 }

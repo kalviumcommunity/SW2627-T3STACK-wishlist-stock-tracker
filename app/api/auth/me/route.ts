@@ -1,18 +1,11 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
-import { verifySessionToken, SESSION_COOKIE } from "@/lib/auth";
+import { getSessionUser } from "@/lib/auth";
 
 export async function GET(request: Request) {
   try {
-    const cookieHeader = request.headers.get("cookie") || "";
-    const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${SESSION_COOKIE}=([^;]*)`));
-    const token = match ? match[1] : null;
+    const userId = await getSessionUser();
 
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const userId = verifySessionToken(token);
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

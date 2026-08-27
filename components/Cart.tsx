@@ -1,64 +1,152 @@
-import { ShoppingBag, ArrowRight, ShieldCheck, Trash2 } from "lucide-react";
+"use client";
+
+import { useEffect, useState } from "react";
+
+interface CartItem {
+  id: string;
+  productName: string;
+  price: number;
+  imageUrl: string | null;
+  brand: string | null;
+  quantity: number;
+}
 
 export default function Cart() {
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchCart = async () => {
+    try {
+      const res = await fetch("/api/cart");
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) setItems(data);
+      }
+    } catch { /* ignore */ }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchCart();
+    // Listen for cart updates from Wishlist
+    const handler = () => fetchCart();
+    window.addEventListener("cart-updated", handler);
+    return () => window.removeEventListener("cart-updated", handler);
+  }, []);
+
+  // Re-fetch every 2 seconds to catch adds from Wishlist component
+  useEffect(() => {
+    const interval = setInterval(fetchCart, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const removeItem = async (id: string) => {
+    await fetch(`/api/cart?id=${id}`, { method: "DELETE" });
+    setItems((prev) => prev.filter((i) => i.id !== id));
+  };
+
+  const updateQuantity = async (id: string, newQuantity: number) => {
+    if (newQuantity <= 0) return;
+    try {
+      const res = await fetch("/api/cart", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, quantity: newQuantity }),
+      });
+      if (res.ok) {
+        setItems((prev) =>
+          prev.map((i) => (i.id === id ? { ...i, quantity: newQuantity } : i))
+        );
+      }
+    } catch { /* ignore */ }
+  };
+
+  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
   return (
-    <section className="rounded-3xl bg-white p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/60 sticky top-8 transition-all">
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="flex items-center gap-2.5 text-2xl font-bold text-slate-800">
-          <ShoppingBag className="h-6 w-6 text-blue-500 fill-blue-500/20" />
+    <section className="bg-white p-6 border border-black sticky top-8">
+      <div className="flex items-center justify-between mb-8 border-b border-black pb-4">
+        <h2 className="text-xl font-bold text-black">
           My Cart
         </h2>
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-sm font-semibold text-blue-600">
-          1
+        <span className="font-bold text-black">
+          {items.length} items
         </span>
       </div>
 
-      <div className="flex flex-col gap-6">
-        <div className="group flex items-start gap-4 rounded-2xl border border-slate-100 bg-slate-50/50 p-4 hover:bg-white hover:border-slate-200 hover:shadow-sm transition-all">
-           <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-white border border-slate-100 text-3xl shadow-sm">
-            💻
+      <div className="flex flex-col gap-4">
+        {loading ? (
+          <div className="flex justify-center py-8">
+            <span className="text-black">Loading...</span>
           </div>
-          <div className="flex-1">
-            <div className="flex items-start justify-between">
-              <div>
-                <h3 className="font-bold text-slate-800">Laptop</h3>
-                <p className="text-sm font-medium text-emerald-600 mt-1">Ready to checkout</p>
+        ) : items.length === 0 ? (
+          <div className="text-center py-8 border border-black">
+            <p className="text-black font-bold">Your cart is empty.</p>
+            <p className="text-black text-sm mt-2">Add items from your wishlist.</p>
+          </div>
+        ) : (
+          <>
+            {items.map((item) => (
+              <div key={item.id} className="flex flex-col sm:flex-row items-start sm:items-center gap-4 border border-black p-4 bg-gray-50">
+                <div className="flex-1 w-full">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      {item.brand && <p className="text-xs font-bold uppercase border border-black px-1 inline-block mb-1">{item.brand}</p>}
+                      <h3 className="font-bold text-black text-lg">{item.productName}</h3>
+                      <p className="text-sm font-bold mt-1">₹{item.price.toLocaleString()}</p>
+                    </div>
+                    <button
+                      onClick={() => removeItem(item.id)}
+                      className="text-white bg-red-600 px-3 py-1 font-bold text-sm border border-black hover:bg-red-700"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <div className="mt-4 flex items-center gap-2">
+                    <button 
+                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                      className="px-3 py-1 bg-black text-white font-bold border border-black"
+                    >
+                      -
+                    </button>
+                    <span className="font-bold border border-black px-4 py-1 text-center min-w-[3rem] bg-white">
+                      {item.quantity}
+                    </span>
+                    <button 
+                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                      className="px-3 py-1 bg-black text-white font-bold border border-black"
+                    >
+                      +
+                    </button>
+                  </div>
+                  <div className="mt-4 pt-2 border-t border-black flex justify-between">
+                    <span className="font-bold">Total:</span>
+                    <span className="font-bold">₹{(item.price * item.quantity).toLocaleString()}</span>
+                  </div>
+                </div>
               </div>
-              <button className="text-slate-400 hover:text-rose-500 transition-colors p-1 rounded-md hover:bg-rose-50">
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="mt-3 flex items-center justify-between">
-               <span className="text-sm text-slate-500">Qty: 1</span>
-               <p className="text-lg font-extrabold text-slate-900">₹50,000</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="pt-4 border-t border-slate-100 border-dashed">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-slate-500">Subtotal</span>
-            <span className="font-semibold text-slate-800">₹50,000</span>
-          </div>
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-slate-500">Delivery</span>
-            <span className="font-semibold text-emerald-600">Free</span>
-          </div>
-          <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-            <span className="text-lg font-bold text-slate-800">Total</span>
-            <span className="text-2xl font-extrabold text-slate-900">₹50,000</span>
-          </div>
-        </div>
+            ))}
 
-        <button className="group mt-2 w-full flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-4 text-base font-bold text-white shadow-lg shadow-blue-500/25 hover:bg-blue-700 hover:shadow-blue-500/40 active:scale-[0.98] transition-all">
-          Checkout Now
-          <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-        </button>
+            <div className="pt-4 border-t-2 border-black mt-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-bold">Subtotal</span>
+                <span className="font-bold">₹{subtotal.toLocaleString()}</span>
+              </div>
+              <div className="flex items-center justify-between mb-4">
+                <span className="font-bold">Delivery</span>
+                <span className="font-bold">Free</span>
+              </div>
+              <div className="flex items-center justify-between pt-4 border-t border-black">
+                <span className="text-xl font-bold">Total</span>
+                <span className="text-2xl font-bold">₹{subtotal.toLocaleString()}</span>
+              </div>
+            </div>
 
-        <div className="flex items-center justify-center gap-2 text-xs font-medium text-slate-400 mt-2">
-          <ShieldCheck className="h-4 w-4" />
-          Secure Encrypted Checkout
-        </div>
+            <button className="w-full bg-black text-white font-bold py-4 border border-black hover:bg-gray-800 mt-4 text-lg">
+              Checkout Now
+            </button>
+          </>
+        )}
       </div>
     </section>
   );

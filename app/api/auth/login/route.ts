@@ -1,6 +1,6 @@
 import { compare } from "bcryptjs";
 import { NextResponse } from "next/server";
-import { getPrisma } from "@/lib/prisma";
+import { getDb } from "@/lib/db";
 import { createSessionToken, SESSION_COOKIE } from "@/lib/auth";
 
 export async function POST(request: Request) {
@@ -8,10 +8,11 @@ export async function POST(request: Request) {
     const body = await request.json();
     const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
     const password = typeof body.password === "string" ? body.password : "";
-    const prisma = getPrisma();
-    const user = await prisma.user.findUnique({ where: { email } });
 
-    if (!user || !(await compare(password, user.passwordHash))) {
+    const db = getDb();
+    const user = db.prepare("SELECT * FROM users WHERE email = ?").get(email) as any;
+
+    if (!user || !(await compare(password, user.password_hash))) {
       return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
     }
 

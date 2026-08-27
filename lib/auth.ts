@@ -45,3 +45,10 @@ export function verifySessionToken(token: string) {
     return null;
   }
 }
+import { cookies } from "next/headers";
+export async function getSessionUser() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
+  if (!token) return null;
+  return verifySessionToken(token);
+}

@@ -19,15 +19,13 @@ model User {
   passwordHash String   @map("password_hash")
   createdAt    DateTime @default(now()) @map("created_at")
 
-  wishlistItems WishlistItem[]
-
   @@map("users")
 }
 
 model Product {
   id        String   @id @default(cuid())
   name      String
-  price     Decimal  @db.Decimal(10, 2)
+  price     Float
   image     String?
   stock     Int
   createdAt DateTime @default(now())

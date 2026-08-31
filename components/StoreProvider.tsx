@@ -47,7 +47,7 @@ const initialProducts: Product[] = [
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [wishlist, setWishlist] = useState<Product[]>([initialProducts[0], initialProducts[1], initialProducts[2]]);
+  const [wishlist, setWishlist] = useState<Product[]>([]);
   const [cart, setCart] = useState<(Product & { quantity: number })[]>([]);
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
@@ -56,6 +56,41 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setNotification(msg);
     setTimeout(() => setNotification(null), 3000);
   };
+
+  // Map backend item to Product type
+  const mapApiItemToProduct = (apiItem: any): Product => ({
+    id: apiItem.id,
+    name: apiItem.productName,
+    price: `₹${apiItem.price.toLocaleString()}`,
+    priceValue: apiItem.price,
+    inStock: apiItem.inStock ?? true,
+    image: apiItem.imageUrl || "📦",
+    brand: apiItem.brand || "Unknown",
+    category: "General",
+  });
+
+  // Fetch initial data
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [wishlistRes, cartRes] = await Promise.all([
+          fetch("/api/wishlist"),
+          fetch("/api/cart"),
+        ]);
+        if (wishlistRes.ok) {
+          const wData = await wishlistRes.json();
+          setWishlist(wData.map(mapApiItemToProduct));
+        }
+        if (cartRes.ok) {
+          const cData = await cartRes.json();
+          setCart(cData.map((item: any) => ({ ...mapApiItemToProduct(item), quantity: item.quantity })));
+        }
+      } catch (err) {
+        console.error("Failed to fetch store data:", err);
+      }
+    };
+    fetchData();
+  }, []);
 
   // Auto-check stock status every 30 seconds for wishlisted items only
   useEffect(() => {
@@ -81,30 +116,52 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     return wishlist.some((item) => item.id === productId);
   };
 
-  const addToWishlist = (product: Product) => {
+  const addToWishlist = async (product: Product) => {
     if (isInWishlist(product.id)) {
       showNotification(`"${product.name}" is already in your wishlist!`);
       return;
     }
+    
+    // Optimistic UI update
     setWishlist((prev) => [...prev, product]);
     showNotification(`Added "${product.name}" to Wishlist`);
+    
+    // API Call
+    try {
+      await fetch("/api/wishlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          productName: product.name,
+          price: product.priceValue,
+          imageUrl: product.image,
+          brand: product.brand,
+        }),
+      });
+    } catch (err) {
+      console.error("Failed to add to wishlist", err);
+    }
   };
 
-  const removeFromWishlist = (productId: string) => {
+  const removeFromWishlist = async (productId: string) => {
     setWishlist((prev) => prev.filter((item) => item.id !== productId));
     showNotification("Removed item from Wishlist");
+    
+    try {
+      await fetch(`/api/wishlist?id=${productId}`, { method: "DELETE" });
+    } catch (err) {
+      console.error("Failed to remove from wishlist", err);
+    }
   };
 
-  const addToCart = (product: Product) => {
+  const addToCart = async (product: Product) => {
     if (!product.inStock) {
       showNotification(`Cannot add "${product.name}" to cart: Item is out of stock!`);
       return;
     }
 
-    // Optimistically remove from wishlist
+    // Optimistically update UI
     setWishlist((prev) => prev.filter((item) => item.id !== product.id));
-
-    // Add to cart
     setCart((prev) => {
       const existing = prev.find((item) => item.id === product.id);
       if (existing) {
@@ -114,20 +171,55 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       }
       return [...prev, { ...product, quantity: 1 }];
     });
-
     showNotification(`Moved "${product.name}" to Cart`);
+
+    // API Calls
+    try {
+      // Add to cart DB
+      await fetch("/api/cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          productName: product.name,
+          price: product.priceValue,
+          imageUrl: product.image,
+          brand: product.brand,
+          quantity: 1,
+        }),
+      });
+      // Remove from wishlist DB
+      await fetch(`/api/wishlist?id=${product.id}`, { method: "DELETE" });
+    } catch (err) {
+      console.error("Failed to move to cart", err);
+    }
   };
 
-  const removeFromCart = (productId: string) => {
+  const removeFromCart = async (productId: string) => {
     setCart((prev) => prev.filter((item) => item.id !== productId));
     showNotification("Removed item from Cart");
+    
+    try {
+      await fetch(`/api/cart?id=${productId}`, { method: "DELETE" });
+    } catch (err) {
+      console.error("Failed to remove from cart", err);
+    }
   };
 
-  const updateQuantity = (productId: string, newQuantity: number) => {
+  const updateQuantity = async (productId: string, newQuantity: number) => {
     if (newQuantity <= 0) return;
     setCart((prev) =>
       prev.map((item) => (item.id === productId ? { ...item, quantity: newQuantity } : item))
     );
+    
+    try {
+      await fetch("/api/cart", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: productId, quantity: newQuantity }),
+      });
+    } catch (err) {
+      console.error("Failed to update quantity", err);
+    }
   };
 
   return (

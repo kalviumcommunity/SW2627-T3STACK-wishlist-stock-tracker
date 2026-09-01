@@ -1,13 +1,33 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useStore } from "./StoreProvider";
 
 export default function Wishlist() {
   const { wishlist, addToCart, removeFromWishlist, lastChecked } = useStore();
+  const [userId, setUserId] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.user?.id) setUserId(data.user.id);
+      })
+      .catch(console.error);
+  }, []);
+
+  const handleShare = () => {
+    if (!userId) return;
+    const url = `${window.location.origin}/share/${userId}`;
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 3000);
+  };
 
   return (
     <section className="bg-white p-6 border border-black sticky top-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6 border-b border-black pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-black pb-4">
         <div>
           <h2 className="text-xl font-bold text-black">
             My Wishlist
@@ -18,9 +38,19 @@ export default function Wishlist() {
             </p>
           )}
         </div>
-        <span className="font-bold text-black">
-          {wishlist.length} items
-        </span>
+        <div className="flex items-center gap-4">
+          <span className="font-bold text-black">
+            {wishlist.length} items
+          </span>
+          {userId && (
+            <button
+              onClick={handleShare}
+              className="px-4 py-2 text-sm font-bold border-2 border-black bg-white text-black hover:bg-black hover:text-white transition-colors"
+            >
+              {copied ? "Copied Link!" : "Share Wishlist"}
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-col gap-4">

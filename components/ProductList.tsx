@@ -7,13 +7,13 @@ export default function ProductList() {
   const { products } = useStore();
 
   return (
-    <section className="bg-white p-6 border border-black mb-8">
-      <div className="flex items-center justify-between mb-6 border-b border-black pb-4">
-        <h2 className="text-xl font-bold text-black">
-          Product Catalogue
+    <section className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 mb-12">
+      <div className="flex items-center justify-between mb-8 pb-6 border-b border-slate-100">
+        <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
+          Trending Products
         </h2>
-        <span className="font-bold text-black">
-          {products.length} Products Available
+        <span className="text-sm font-medium text-slate-500 bg-slate-50 px-4 py-1.5 rounded-full">
+          {products.length} items available
         </span>
       </div>
 

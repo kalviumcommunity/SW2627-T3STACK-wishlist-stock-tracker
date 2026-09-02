@@ -59,7 +59,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   // Map backend item to Product type
   const mapApiItemToProduct = (apiItem: any): Product => ({
-    id: apiItem.id,
+    id: apiItem.productId || apiItem.id, // Support new Prisma schema where productId is used
     name: apiItem.productName,
     price: `₹${apiItem.price.toLocaleString()}`,
     priceValue: apiItem.price,
@@ -83,7 +83,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         }
         if (cartRes.ok) {
           const cData = await cartRes.json();
-          setCart(cData.map((item: any) => ({ ...mapApiItemToProduct(item), quantity: item.quantity })));
+          setCart(cData.map((item: any) => ({ ...mapApiItemToProduct(item), quantity: item.quantity, id: item.id, productId: item.productId })));
         }
       } catch (err) {
         console.error("Failed to fetch store data:", err);
@@ -113,7 +113,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const isInWishlist = (productId: string) => {
-    return wishlist.some((item) => item.id === productId);
+    return wishlist.some((item) => item.id === productId || (item as any).productId === productId);
   };
 
   const addToWishlist = async (product: Product) => {
@@ -132,6 +132,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          id: product.id,
+          productId: product.id,
           productName: product.name,
           price: product.priceValue,
           imageUrl: product.image,
@@ -144,7 +146,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   const removeFromWishlist = async (productId: string) => {
-    setWishlist((prev) => prev.filter((item) => item.id !== productId));
+    setWishlist((prev) => prev.filter((item) => item.id !== productId && (item as any).productId !== productId));
     showNotification("Removed item from Wishlist");
     
     try {
@@ -161,15 +163,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Optimistically update UI
-    setWishlist((prev) => prev.filter((item) => item.id !== product.id));
+    setWishlist((prev) => prev.filter((item) => item.id !== product.id && (item as any).productId !== product.id));
     setCart((prev) => {
-      const existing = prev.find((item) => item.id === product.id);
+      const existing = prev.find((item) => item.id === product.id || (item as any).productId === product.id);
       if (existing) {
         return prev.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+          item.id === product.id || (item as any).productId === product.id ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
-      return [...prev, { ...product, quantity: 1 }];
+      return [...prev, { ...product, quantity: 1, productId: product.id } as any];
     });
     showNotification(`Moved "${product.name}" to Cart`);
 
@@ -180,6 +182,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          id: product.id,
+          productId: product.id,
           productName: product.name,
           price: product.priceValue,
           imageUrl: product.image,
@@ -194,28 +198,37 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const removeFromCart = async (productId: string) => {
-    setCart((prev) => prev.filter((item) => item.id !== productId));
+  const removeFromCart = async (itemIdOrProductId: string) => {
+    // Find the cart item id if this is a product id
+    const cartItem = cart.find(item => item.id === itemIdOrProductId || (item as any).productId === itemIdOrProductId);
+    const cartItemId = cartItem ? cartItem.id : itemIdOrProductId;
+
+    setCart((prev) => prev.filter((item) => item.id !== cartItemId && (item as any).productId !== itemIdOrProductId));
     showNotification("Removed item from Cart");
     
     try {
-      await fetch(`/api/cart?id=${productId}`, { method: "DELETE" });
+      await fetch(`/api/cart?id=${cartItemId}`, { method: "DELETE" });
     } catch (err) {
       console.error("Failed to remove from cart", err);
     }
   };
 
-  const updateQuantity = async (productId: string, newQuantity: number) => {
+  const updateQuantity = async (itemIdOrProductId: string, newQuantity: number) => {
     if (newQuantity <= 0) return;
+    
+    // Find the cart item id if this is a product id
+    const cartItem = cart.find(item => item.id === itemIdOrProductId || (item as any).productId === itemIdOrProductId);
+    const cartItemId = cartItem ? cartItem.id : itemIdOrProductId;
+
     setCart((prev) =>
-      prev.map((item) => (item.id === productId ? { ...item, quantity: newQuantity } : item))
+      prev.map((item) => (item.id === cartItemId || (item as any).productId === itemIdOrProductId ? { ...item, quantity: newQuantity } : item))
     );
     
     try {
       await fetch("/api/cart", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: productId, quantity: newQuantity }),
+        body: JSON.stringify({ id: cartItemId, quantity: newQuantity }),
       });
     } catch (err) {
       console.error("Failed to update quantity", err);

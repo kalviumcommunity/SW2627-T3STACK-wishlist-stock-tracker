@@ -1,114 +1,323 @@
-import { NextResponse } from "next/server";
-import { getDb, generateId } from "@/lib/db";
-import { getSessionUser } from "@/lib/auth";
+import { NextRequest, NextResponse } from "next/server";
+import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
+import { getPrisma } from "@/lib/prisma";
 
-export async function GET() {
+function getAuthenticatedUserId(request: NextRequest) {
+  const token = request.cookies.get(SESSION_COOKIE)?.value;
+  return token ? verifySessionToken(token) : null;
+}
+
+function normalizeQuantity(value: unknown): number | null {
+  if (typeof value === "number") {
+    return Number.isInteger(value) && value > 0 ? value : null;
+  }
+
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+
+    const parsed = Number(trimmed);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+  }
+
+  return null;
+}
+
+export async function GET(request: NextRequest) {
   try {
-    const userId = await getSessionUser();
-    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = getAuthenticatedUserId(request);
 
-    const db = getDb();
-    const items = db.prepare("SELECT * FROM cart_items WHERE user_id = ? ORDER BY created_at DESC").all(userId);
-    const mapped = (items as any[]).map((row) => ({
-      id: row.id,
-      productName: row.product_name,
-      price: row.price,
-      imageUrl: row.image_url,
-      brand: row.brand,
-      quantity: row.quantity,
-      createdAt: row.created_at,
-    }));
-    return NextResponse.json(mapped);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const prisma = getPrisma();
+    const cart = await prisma.cart.findUnique({
+      where: { userId },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+          orderBy: { createdAt: "desc" },
+        },
+      },
+    });
+
+    if (!cart || cart.items.length === 0) {
+      return NextResponse.json({ items: [] });
+    }
+
+    return NextResponse.json(
+      cart.items.map((item) => ({
+        id: item.id,
+        cartId: item.cartId,
+        productId: item.productId,
+        quantity: item.quantity,
+        productName: item.product.name,
+        price: Number(item.product.price),
+        imageUrl: item.product.image,
+        brand: "Unknown", // Assuming brand is not in schema
+        stock: item.product.stock,
+      }))
+    );
+  } catch (error) {
+    console.error("Cart fetch failed:", error);
+    return NextResponse.json({ error: "Unable to fetch cart" }, { status: 500 });
   }
 }
 
-export async function POST(req: Request) {
+export async function PUT(request: NextRequest) {
   try {
-    const userId = await getSessionUser();
-    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = getAuthenticatedUserId(request);
 
-    const body = await req.json();
-    const { productName, price, imageUrl, brand, quantity } = body;
-    if (!productName || price == null) {
-      return NextResponse.json({ error: "productName and price are required" }, { status: 400 });
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    
-    const db = getDb();
-    
-    // Check if item already exists
-    const existing = db.prepare(
-      "SELECT id, quantity FROM cart_items WHERE user_id = ? AND product_name = ?"
-    ).get(userId, productName) as any;
-    
-    const qtyToAdd = quantity || 1;
 
-    if (existing) {
-      db.prepare(
-        "UPDATE cart_items SET quantity = quantity + ? WHERE id = ?"
-      ).run(qtyToAdd, existing.id);
-      return NextResponse.json({ id: existing.id, productName, price, imageUrl, brand, quantity: existing.quantity + qtyToAdd }, { status: 200 });
-    } else {
-      const id = generateId();
-      db.prepare(
-        `INSERT INTO cart_items (id, user_id, product_name, price, image_url, brand, quantity)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`
-      ).run(id, userId, productName, price, imageUrl || null, brand || null, qtyToAdd);
-      return NextResponse.json({ id, productName, price, imageUrl, brand, quantity: qtyToAdd }, { status: 201 });
+    const body = await request.json().catch(() => ({}));
+    const itemId = typeof body?.id === "string" ? body.id.trim() : "";
+    const quantity = normalizeQuantity(body?.quantity);
+
+    if (!itemId) {
+      return NextResponse.json({ error: "Cart item ID is required" }, { status: 400 });
     }
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+
+    if (!quantity) {
+      return NextResponse.json(
+        { error: "Quantity must be a positive integer" },
+        { status: 400 },
+      );
+    }
+
+    const prisma = getPrisma();
+    const cartItem = await prisma.cartItem.findFirst({
+      where: {
+        id: itemId,
+        cart: {
+          userId,
+        },
+      },
+      include: {
+        product: true,
+      },
+    });
+
+    if (!cartItem) {
+      return NextResponse.json({ error: "Cart item not found" }, { status: 404 });
+    }
+
+    if (!cartItem.product) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
+
+    if (cartItem.product.stock === 0) {
+      return NextResponse.json(
+        { error: "This product is out of stock and cannot be added to the cart" },
+        { status: 409 },
+      );
+    }
+
+    if (quantity > cartItem.product.stock) {
+      return NextResponse.json(
+        {
+          error: `Requested quantity exceeds available stock. Only ${cartItem.product.stock} item(s) available.`,
+        },
+        { status: 409 },
+      );
+    }
+
+    const updated = await prisma.cartItem.update({
+      where: { id: cartItem.id },
+      data: { quantity },
+      include: { product: true },
+    });
+
+    return NextResponse.json({
+      success: true,
+      quantity,
+    });
+  } catch (error) {
+    console.error("Cart item update failed:", error);
+    return NextResponse.json({ error: "Unable to update cart item" }, { status: 500 });
   }
 }
 
-export async function PUT(req: Request) {
+export async function DELETE(request: NextRequest) {
   try {
-    const userId = await getSessionUser();
-    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = getAuthenticatedUserId(request);
 
-    const body = await req.json();
-    const { id, quantity } = body;
-    if (!id || quantity == null) {
-      return NextResponse.json({ error: "id and quantity are required" }, { status: 400 });
-    }
-    
-    if (quantity <= 0) {
-      return NextResponse.json({ error: "quantity must be greater than 0" }, { status: 400 });
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const db = getDb();
-    const result = db.prepare("UPDATE cart_items SET quantity = ? WHERE id = ? AND user_id = ?").run(quantity, id, userId);
-    
-    if (result.changes === 0) {
-      return NextResponse.json({ error: "Not found or unauthorized" }, { status: 404 });
+    const { searchParams } = new URL(request.url);
+    const itemId = searchParams.get("id");
+
+    if (!itemId) {
+      return NextResponse.json({ error: "Cart item ID is required" }, { status: 400 });
     }
-    
-    return NextResponse.json({ success: true, quantity });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+
+    const prisma = getPrisma();
+    const cartItem = await prisma.cartItem.findFirst({
+      where: {
+        id: itemId,
+        cart: {
+          userId,
+        },
+      },
+    });
+
+    if (!cartItem) {
+      return NextResponse.json({ error: "Cart item not found" }, { status: 404 });
+    }
+
+    await prisma.cartItem.delete({
+      where: { id: cartItem.id },
+    });
+
+    return NextResponse.json({
+      success: true,
+    });
+  } catch (error) {
+    console.error("Cart item removal failed:", error);
+    return NextResponse.json({ error: "Unable to remove cart item" }, { status: 500 });
   }
 }
 
-export async function DELETE(req: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const userId = await getSessionUser();
-    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = getAuthenticatedUserId(request);
 
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get("id");
-    if (!id) {
-      return NextResponse.json({ error: "id is required" }, { status: 400 });
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const db = getDb();
-    const result = db.prepare("DELETE FROM cart_items WHERE id = ? AND user_id = ?").run(id, userId);
+
+    const body = await request.json().catch(() => ({}));
+    const productId = typeof body?.productId === "string" ? body.productId.trim() : (body?.id?.trim() || "");
+    const quantity = normalizeQuantity(body?.quantity) || 1;
     
-    if (result.changes === 0) {
-      return NextResponse.json({ error: "Not found or unauthorized" }, { status: 404 });
+    // Fallback for frontend that might send productName, price
+    const productName = body?.productName || "Unknown Product";
+    const price = body?.price || 0;
+    const imageUrl = body?.imageUrl || "";
+
+    if (!productId) {
+      return NextResponse.json({ error: "Product ID is required" }, { status: 400 });
     }
+
+    const prisma = getPrisma();
     
-    return NextResponse.json({ success: true });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    // Upsert product so frontend static products don't break
+    const product = await prisma.product.upsert({
+      where: { id: productId },
+      update: {},
+      create: {
+        id: productId,
+        name: productName,
+        price: price,
+        image: imageUrl,
+        stock: 10, // Default stock for static products
+      }
+    });
+
+    if (product.stock === 0) {
+      return NextResponse.json(
+        { error: "This product is out of stock and cannot be added to the cart" },
+        { status: 409 },
+      );
+    }
+
+    if (quantity > product.stock) {
+      return NextResponse.json(
+        {
+          error: `Requested quantity exceeds available stock. Only ${product.stock} item(s) available.`,
+        },
+        { status: 409 },
+      );
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      let cart = await tx.cart.findUnique({
+        where: { userId },
+      });
+
+      if (!cart) {
+        cart = await tx.cart.create({
+          data: { userId },
+        });
+      }
+
+      const existing = await tx.cartItem.findUnique({
+        where: {
+          cartId_productId: {
+            cartId: cart.id,
+            productId,
+          },
+        },
+      });
+
+      const finalQuantity = existing ? existing.quantity + quantity : quantity;
+
+      if (finalQuantity > product.stock) {
+        throw Object.assign(new Error("Requested quantity exceeds available stock."), {
+          code: "INSUFFICIENT_STOCK",
+        });
+      }
+
+      if (existing) {
+        const updated = await tx.cartItem.update({
+          where: { id: existing.id },
+          data: {
+            quantity: finalQuantity,
+          },
+          include: { product: true },
+        });
+
+        return {
+          item: updated,
+          created: false,
+        };
+      }
+
+      const created = await tx.cartItem.create({
+        data: {
+          cartId: cart.id,
+          productId,
+          quantity,
+        },
+        include: { product: true },
+      });
+
+      return {
+        item: created,
+        created: true,
+      };
+    });
+
+    return NextResponse.json(
+      {
+        id: result.item.id,
+        cartId: result.item.cartId,
+        productId: result.item.productId,
+        quantity: result.item.quantity,
+        productName: result.item.product.name,
+        price: Number(result.item.product.price),
+        imageUrl: result.item.product.image,
+        stock: result.item.product.stock,
+        created: result.created,
+      },
+      { status: result.created ? 201 : 200 },
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unable to add product to cart";
+    const code = typeof error === "object" && error && "code" in error ? String(error.code) : "";
+
+    if (code === "INSUFFICIENT_STOCK") {
+      return NextResponse.json({ error: message }, { status: 409 });
+    }
+
+    console.error("Cart add failed:", error);
+    return NextResponse.json({ error: "Unable to add product to cart" }, { status: 500 });
   }
 }

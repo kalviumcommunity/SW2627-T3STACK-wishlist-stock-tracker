@@ -10,83 +10,85 @@ export default function Cart() {
   const formattedSubtotal = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(subtotal);
 
   return (
-    <section className="bg-white p-6 border border-black sticky top-8">
-      <div className="flex items-center justify-between mb-8 border-b border-black pb-4">
-        <h2 className="text-xl font-bold text-black">
+    <section className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 sticky top-24">
+      <div className="flex items-center justify-between mb-8 border-b border-slate-100 pb-6">
+        <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
           My Cart
         </h2>
-        <span className="font-bold text-black">
+        <span className="text-sm font-medium text-slate-500 bg-slate-50 px-4 py-1.5 rounded-full">
           {totalQuantity} items
         </span>
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-5">
         {cart.length === 0 ? (
-          <div className="text-center py-8 border border-black">
-            <p className="text-black font-bold">Your cart is empty.</p>
-            <p className="text-black text-sm mt-2">Add items from your wishlist.</p>
+          <div className="text-center py-12 rounded-xl border border-dashed border-slate-300 bg-slate-50">
+            <p className="text-slate-900 font-semibold text-lg">Your cart is empty.</p>
+            <p className="text-slate-500 text-sm mt-2">Add items from your wishlist.</p>
           </div>
         ) : (
           <>
             {cart.map((item) => (
-              <div key={item.id} className="flex flex-col sm:flex-row items-start sm:items-center gap-4 border border-black p-4 bg-gray-50">
-                <div className="flex h-16 w-16 shrink-0 items-center justify-center border border-black bg-white text-3xl">
+              <div key={item.id} className="flex flex-col sm:flex-row items-start sm:items-center gap-5 rounded-xl border border-slate-100 p-4 bg-white shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-4xl">
                   {item.image}
                 </div>
                 <div className="flex-1 w-full">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h3 className="font-bold text-black text-lg">{item.name}</h3>
-                      <p className="text-sm font-bold mt-1">{item.price}</p>
+                      <h3 className="font-semibold text-slate-900 text-lg">{item.name}</h3>
+                      <p className="text-slate-500 font-medium mt-1">{item.price}</p>
                     </div>
                     <button
                       onClick={() => removeFromCart(item.id)}
-                      className="text-white bg-red-600 px-3 py-1 font-bold text-sm border border-black hover:bg-red-700"
+                      className="text-rose-500 hover:text-rose-600 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg font-medium text-sm transition-colors"
                     >
                       Remove
                     </button>
                   </div>
-                  <div className="mt-4 flex items-center gap-2">
-                    <button 
-                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                      className="px-3 py-1 bg-black text-white font-bold border border-black"
-                    >
-                      -
-                    </button>
-                    <span className="font-bold border border-black px-4 py-1 text-center min-w-[3rem] bg-white">
-                      {item.quantity}
-                    </span>
-                    <button 
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      className="px-3 py-1 bg-black text-white font-bold border border-black"
-                    >
-                      +
-                    </button>
-                  </div>
-                  <div className="mt-4 pt-2 border-t border-black flex justify-between">
-                    <span className="font-bold">Total:</span>
-                    <span className="font-bold">₹{(item.priceValue * item.quantity).toLocaleString()}</span>
+                  <div className="mt-5 flex items-center justify-between">
+                    <div className="flex items-center gap-1 bg-slate-50 rounded-lg p-1 border border-slate-100">
+                      <button 
+                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        className="w-8 h-8 flex items-center justify-center rounded-md bg-white text-slate-700 font-bold border border-slate-200 hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-sm"
+                      >
+                        -
+                      </button>
+                      <span className="font-semibold text-slate-900 w-10 text-center">
+                        {item.quantity}
+                      </span>
+                      <button 
+                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        className="w-8 h-8 flex items-center justify-center rounded-md bg-white text-slate-700 font-bold border border-slate-200 hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-sm"
+                      >
+                        +
+                      </button>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <span className="text-xs text-slate-500 font-medium uppercase tracking-wider">Total</span>
+                      <span className="font-bold text-slate-900 text-lg">₹{(item.priceValue * item.quantity).toLocaleString()}</span>
+                    </div>
                   </div>
                 </div>
               </div>
             ))}
 
-            <div className="pt-4 border-t-2 border-black mt-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-bold">Subtotal</span>
-                <span className="font-bold">{formattedSubtotal}</span>
+            <div className="pt-6 border-t border-slate-100 mt-2">
+              <div className="flex items-center justify-between mb-3 text-slate-600">
+                <span className="font-medium">Subtotal</span>
+                <span className="font-semibold text-slate-900">{formattedSubtotal}</span>
               </div>
-              <div className="flex items-center justify-between mb-4">
-                <span className="font-bold">Delivery</span>
-                <span className="font-bold">Free</span>
+              <div className="flex items-center justify-between mb-6 text-slate-600">
+                <span className="font-medium">Delivery</span>
+                <span className="font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md text-sm">Free</span>
               </div>
-              <div className="flex items-center justify-between pt-4 border-t border-black">
-                <span className="text-xl font-bold">Total</span>
-                <span className="text-2xl font-bold">{formattedSubtotal}</span>
+              <div className="flex items-center justify-between pt-5 border-t border-slate-100">
+                <span className="text-xl font-bold text-slate-900">Total</span>
+                <span className="text-2xl font-extrabold text-indigo-600">{formattedSubtotal}</span>
               </div>
             </div>
 
-            <button className="w-full bg-black text-white font-bold py-4 border border-black hover:bg-gray-800 mt-4 text-lg">
+            <button className="w-full bg-indigo-600 text-white font-semibold py-4 rounded-xl shadow-md hover:bg-indigo-700 hover:shadow-lg transition-all mt-6 text-lg tracking-wide">
               Checkout Now
             </button>
           </>

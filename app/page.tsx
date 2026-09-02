@@ -9,21 +9,24 @@ export default function Home() {
   const { notification } = useStore();
 
   return (
-    <div className="py-12 md:py-20 px-6">
+    <div className="py-12 md:py-20 px-6 max-w-7xl mx-auto">
       {/* Toast Notification */}
       {notification && (
-        <div className="fixed top-5 right-5 z-50 border-2 border-black bg-white px-5 py-3 font-bold text-black animate-bounce">
-          🔔 {notification}
+        <div className="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-6 py-4 rounded-xl shadow-2xl font-medium animate-in fade-in slide-in-from-bottom-5">
+          <div className="flex items-center gap-3">
+            <span className="text-indigo-400">🔔</span> {notification}
+          </div>
         </div>
       )}
 
       <div className="mx-auto max-w-6xl">
-        <header className="mb-10 text-center md:text-left border-b-2 border-black pb-4">
-          <h1 className="text-3xl md:text-4xl font-bold text-black">
-            Wishlist & Stock Tracker
+        <header className="mb-12 text-center md:text-left">
+          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-slate-900 mb-4">
+            Smart Tracking,<br />
+            <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Zero Friction.</span>
           </h1>
-          <p className="mt-2 text-base font-bold text-black max-w-2xl">
-            Browse products, add them to your wishlist, and monitor real-time stock availability with auto-refresh every 30 seconds.
+          <p className="text-lg md:text-xl text-slate-500 max-w-2xl leading-relaxed">
+            Browse premium products, curate your wishlist, and let our real-time engine monitor stock availability so you never miss out.
           </p>
         </header>
 

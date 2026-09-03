@@ -96,17 +96,25 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setLastChecked(new Date());
 
-    const interval = setInterval(() => {
-      setWishlist((prevWishlist) => {
-        if (prevWishlist.length === 0) return prevWishlist;
-
-        return prevWishlist.map((item) => {
-          // Simulate 75% chance in stock, 25% out of stock
-          const newStockStatus = Math.random() > 0.25;
-          return { ...item, inStock: newStockStatus };
-        });
-      });
-      setLastChecked(new Date());
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch("/api/stock");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.items && Array.isArray(data.items)) {
+            setWishlist((prevWishlist) => {
+              if (prevWishlist.length === 0) return prevWishlist;
+              return prevWishlist.map((item) => {
+                const stockData = data.items.find((i: any) => i.productId === item.id || i.productId === (item as any).productId);
+                return stockData ? { ...item, inStock: stockData.inStock } : item;
+              });
+            });
+          }
+          setLastChecked(new Date());
+        }
+      } catch (err) {
+        console.error("Stock check failed:", err);
+      }
     }, 30000);
 
     return () => clearInterval(interval);

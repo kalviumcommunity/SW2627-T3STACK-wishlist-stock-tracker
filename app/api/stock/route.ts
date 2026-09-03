@@ -1,33 +1,51 @@
-import { NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
-import { getSessionUser } from "@/lib/auth";
+import { NextRequest, NextResponse } from "next/server";
+import { getPrisma } from "@/lib/prisma";
+import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
 
-export async function GET() {
+function getAuthenticatedUserId(request: NextRequest) {
+  const token = request.cookies.get(SESSION_COOKIE)?.value;
+  return token ? verifySessionToken(token) : null;
+}
+
+export async function GET(request: NextRequest) {
   try {
-    const userId = await getSessionUser();
-    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = getAuthenticatedUserId(request);
 
-    const db = getDb();
-    const items = db.prepare("SELECT * FROM wishlist_items WHERE user_id = ? ORDER BY created_at DESC").all(userId);
-    const mapped = (items as any[]).map((row) => ({
-      id: row.id,
-      productName: row.product_name,
-      price: row.price,
-      imageUrl: row.image_url,
-      brand: row.brand,
-      inStock: Boolean(row.in_stock),
-      createdAt: row.created_at,
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const prisma = getPrisma();
+    
+    // Fetch wishlist items with product details
+    const wishlistItems = await prisma.wishlist.findMany({
+      where: { userId },
+      include: { product: true },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const items = wishlistItems.map((item) => ({
+      id: item.id,
+      productId: item.productId,
+      productName: item.product.name,
+      price: Number(item.product.price),
+      imageUrl: item.product.image,
+      brand: "Unknown",
+      inStock: item.product.stock > 0,
+      stock: item.product.stock,
+      createdAt: item.createdAt,
     }));
 
-    const totalItems = mapped.length;
-    const inStockCount = mapped.filter((i) => i.inStock).length;
+    const totalItems = items.length;
+    const inStockCount = items.filter((i) => i.inStock).length;
     const outOfStockCount = totalItems - inStockCount;
 
     return NextResponse.json({
-      items: mapped,
+      items,
       stats: { totalItems, inStockCount, outOfStockCount },
     });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (error) {
+    console.error("Stock fetch failed:", error);
+    return NextResponse.json({ error: "Unable to fetch stock details" }, { status: 500 });
   }
 }

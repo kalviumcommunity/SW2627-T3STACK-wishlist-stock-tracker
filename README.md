@@ -346,11 +346,10 @@ If the cart request fails:
 
 # 7. Authentication
 
-Users must have their own independent wishlist and cart.
+Users must have their own and cart.
 
 ### Requirements
 
-- User registration.
 - User login.
 - Authentication middleware.
 - Protected wishlist APIs.
@@ -358,6 +357,7 @@ Users must have their own independent wishlist and cart.
 - User-specific database queries.
 
 Example:
+
 
 ```text
 User A

@@ -91,7 +91,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const prisma = getPrisma();
-    const cartItem = await prisma.cartItem.findFirst({
+    let cartItem = await prisma.cartItem.findFirst({
       where: {
         id: itemId,
         cart: {
@@ -102,6 +102,21 @@ export async function PUT(request: NextRequest) {
         product: true,
       },
     });
+
+    if (!cartItem) {
+      // Try to find by productId for optimistically added items
+      cartItem = await prisma.cartItem.findFirst({
+        where: {
+          productId: itemId,
+          cart: {
+            userId,
+          },
+        },
+        include: {
+          product: true,
+        },
+      });
+    }
 
     if (!cartItem) {
       return NextResponse.json({ error: "Cart item not found" }, { status: 404 });
@@ -159,7 +174,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     const prisma = getPrisma();
-    const cartItem = await prisma.cartItem.findFirst({
+    let cartItem = await prisma.cartItem.findFirst({
       where: {
         id: itemId,
         cart: {
@@ -167,6 +182,18 @@ export async function DELETE(request: NextRequest) {
         },
       },
     });
+
+    if (!cartItem) {
+      // Try to find by productId since frontend might send productId for optimistically added items
+      cartItem = await prisma.cartItem.findFirst({
+        where: {
+          productId: itemId,
+          cart: {
+            userId,
+          },
+        },
+      });
+    }
 
     if (!cartItem) {
       return NextResponse.json({ error: "Cart item not found" }, { status: 404 });
@@ -194,7 +221,9 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const productId = typeof body?.productId === "string" ? body.productId.trim() : (body?.id?.trim() || "");
+    let fallbackId = "";
+    if (typeof body?.id === "string") fallbackId = body.id.trim();
+    const productId = typeof body?.productId === "string" ? body.productId.trim() : fallbackId;
     const quantity = normalizeQuantity(body?.quantity) || 1;
     
     // Fallback for frontend that might send productName, price

@@ -49,7 +49,9 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const productId = typeof body?.productId === "string" ? body.productId : (body?.id?.trim() || "");
+    let fallbackId = "";
+    if (typeof body?.id === "string") fallbackId = body.id.trim();
+    const productId = typeof body?.productId === "string" ? body.productId.trim() : fallbackId;
     
     // Fallback for frontend that might send productName, price
     const productName = body?.productName || "Unknown Product";

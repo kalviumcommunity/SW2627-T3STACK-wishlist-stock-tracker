@@ -89,8 +89,9 @@ sequenceDiagram
     UI->>UI: Optimistically add to Cart state
     UI-->>U: Shows "Moved to Cart" Toast Notification
     
-    parallel API Requests
+    par API Requests
         UI->>C: POST /api/cart { productId }
+    and
         UI->>W: DELETE /api/wishlist?id={productId}
     end
     

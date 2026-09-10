@@ -5,6 +5,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { StoreProvider } from "@/components/StoreProvider";
+import FeedbackButton from "@/components/FeedbackButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <main className="flex-1 max-w-7xl w-full mx-auto p-4">{children}</main>
           <Footer />
         </StoreProvider>
+        <FeedbackButton />
       </body>
     </html>
   );

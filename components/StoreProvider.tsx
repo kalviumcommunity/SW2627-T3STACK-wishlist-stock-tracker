@@ -24,6 +24,7 @@ type StoreContextType = {
   addToCart: (product: Product) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
+  checkoutCart: () => Promise<void>;
   isInWishlist: (productId: string) => boolean;
 };
 
@@ -57,11 +58,28 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setTimeout(() => setNotification(null), 3000);
   };
 
+  const updateStockData = (stockItems: any[]) => {
+    setWishlist((prevWishlist) => {
+      if (prevWishlist.length === 0) return prevWishlist;
+      return prevWishlist.map((item) => {
+        const stockData = stockItems.find((i: any) => i.productId === item.id || i.productId === (item as any).productId);
+        return stockData ? { ...item, inStock: stockData.inStock } : item;
+      });
+    });
+    setProducts((prevProducts) => {
+      return prevProducts.map((item) => {
+        const stockData = stockItems.find((i: any) => i.productId === item.id || i.productId === (item as any).productId);
+        return stockData ? { ...item, inStock: stockData.inStock } : item;
+      });
+    });
+    setLastChecked(new Date());
+  };
+
   // Map backend item to Product type
   const mapApiItemToProduct = (apiItem: any): Product => {
     const staticProduct = initialProducts.find(p => p.id === apiItem.productId || p.id === apiItem.id);
     return {
-      id: apiItem.productId || apiItem.id, // Support new Prisma schema where productId is used
+      id: apiItem.productId || apiItem.id,
       name: staticProduct ? staticProduct.name : apiItem.productName,
       price: `₹${apiItem.price.toLocaleString()}`,
       priceValue: apiItem.price,
@@ -76,9 +94,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [wishlistRes, cartRes] = await Promise.all([
+        const [wishlistRes, cartRes, stockRes] = await Promise.all([
           fetch("/api/wishlist"),
           fetch("/api/cart"),
+          fetch("/api/stock")
         ]);
         if (wishlistRes.ok) {
           const wData = await wishlistRes.json();
@@ -88,6 +107,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           const cData = await cartRes.json();
           setCart(cData.map((item: any) => ({ ...mapApiItemToProduct(item), quantity: item.quantity, id: item.id, productId: item.productId })));
         }
+        if (stockRes.ok) {
+          const sData = await stockRes.json();
+          if (sData.items) updateStockData(sData.items);
+        }
       } catch (err) {
         console.error("Failed to fetch store data:", err);
       }
@@ -95,25 +118,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     fetchData();
   }, []);
 
-  // Auto-check stock status every 30 seconds for wishlisted items only
+  // Auto-check stock status every 30 seconds
   useEffect(() => {
-    setLastChecked(new Date());
-
     const interval = setInterval(async () => {
       try {
         const res = await fetch("/api/stock");
         if (res.ok) {
           const data = await res.json();
           if (data.items && Array.isArray(data.items)) {
-            setWishlist((prevWishlist) => {
-              if (prevWishlist.length === 0) return prevWishlist;
-              return prevWishlist.map((item) => {
-                const stockData = data.items.find((i: any) => i.productId === item.id || i.productId === (item as any).productId);
-                return stockData ? { ...item, inStock: stockData.inStock } : item;
-              });
-            });
+            updateStockData(data.items);
           }
-          setLastChecked(new Date());
         }
       } catch (err) {
         console.error("Stock check failed:", err);
@@ -246,6 +260,28 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const checkoutCart = async () => {
+    if (cart.length === 0) return;
+    try {
+      const res = await fetch("/api/checkout", { method: "POST" });
+      if (!res.ok) {
+        const data = await res.json();
+        showNotification(`Checkout failed: ${data.error}`);
+        return;
+      }
+      setCart([]);
+      showNotification("Checkout successful! Items will soon go out of stock.");
+      // Trigger a stock check immediately
+      fetch("/api/stock").then(r => r.json()).then(data => {
+        if (data.items) {
+           updateStockData(data.items);
+        }
+      });
+    } catch (err) {
+      showNotification("Checkout failed.");
+    }
+  };
+
   return (
     <StoreContext.Provider
       value={{
@@ -259,6 +295,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         addToCart,
         removeFromCart,
         updateQuantity,
+        checkoutCart,
         isInWishlist
       }}
     >

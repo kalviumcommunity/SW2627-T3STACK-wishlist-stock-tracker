@@ -3,11 +3,12 @@
 import { useStore } from "./StoreProvider";
 
 export default function Cart() {
-  const { cart, removeFromCart, updateQuantity } = useStore();
+  const { cart, removeFromCart, updateQuantity, checkoutCart } = useStore();
 
   const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = cart.reduce((sum, item) => sum + (item.priceValue * item.quantity), 0);
   const formattedSubtotal = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(subtotal);
+
 
   return (
     <section className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 sticky top-24">
@@ -88,7 +89,10 @@ export default function Cart() {
               </div>
             </div>
 
-            <button className="w-full bg-black text-white font-semibold py-4 rounded-xl shadow-md hover:bg-zinc-800 hover:shadow-lg transition-all mt-6 text-lg tracking-wide">
+            <button 
+              onClick={checkoutCart}
+              className="w-full bg-black text-white font-semibold py-4 rounded-xl shadow-md hover:bg-zinc-800 hover:shadow-lg transition-all mt-6 text-lg tracking-wide"
+            >
               Checkout Now
             </button>
           </>

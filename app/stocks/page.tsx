@@ -40,7 +40,7 @@ export default function StocksPage() {
   if (loading) {
     return (
       <div className="flex justify-center items-center py-32">
-        <span className="font-bold text-black text-xl">Loading Stocks...</span>
+        <span className="font-semibold text-slate-600 text-lg">Loading Stocks...</span>
       </div>
     );
   }
@@ -49,60 +49,64 @@ export default function StocksPage() {
   const items = data?.items || [];
 
   return (
-    <div className="py-12 md:py-20">
-      <div className="mx-auto max-w-4xl px-6">
-        <header className="mb-10 border-b-2 border-black pb-4">
-          <h1 className="text-4xl font-bold text-black">Stock Tracker</h1>
-          <p className="mt-3 text-lg font-bold text-black">Monitor stock availability of your wishlist items in real-time.</p>
+    <div className="py-12 md:py-20 px-6 max-w-7xl mx-auto">
+      <div className="mx-auto max-w-5xl">
+        <header className="mb-12 text-center md:text-left border-b border-slate-200 pb-8">
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 mb-4">
+            Stock <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Tracker</span>
+          </h1>
+          <p className="text-lg text-slate-500 max-w-2xl leading-relaxed">
+            Monitor stock availability of your curated wishlist items in real-time.
+          </p>
         </header>
 
         {/* Stats cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
-          <div className="bg-white border-2 border-black p-6">
-            <p className="text-sm font-bold uppercase mb-2">Total Items</p>
-            <p className="text-4xl font-bold text-black">{stats.totalItems}</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 transition-all hover:shadow-md">
+            <p className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-2">Total Items</p>
+            <p className="text-4xl font-extrabold text-slate-900">{stats.totalItems}</p>
           </div>
-          <div className="bg-white border-2 border-black p-6">
-            <p className="text-sm font-bold uppercase mb-2">In Stock</p>
-            <p className="text-4xl font-bold text-black">{stats.inStockCount}</p>
+          <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 transition-all hover:shadow-md">
+            <p className="text-sm font-medium text-indigo-500 uppercase tracking-wider mb-2">In Stock</p>
+            <p className="text-4xl font-extrabold text-slate-900">{stats.inStockCount}</p>
           </div>
-          <div className="bg-white border-2 border-black p-6">
-            <p className="text-sm font-bold uppercase mb-2">Out of Stock</p>
-            <p className="text-4xl font-bold text-black">{stats.outOfStockCount}</p>
+          <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 transition-all hover:shadow-md">
+            <p className="text-sm font-medium text-rose-500 uppercase tracking-wider mb-2">Out of Stock</p>
+            <p className="text-4xl font-extrabold text-slate-900">{stats.outOfStockCount}</p>
           </div>
         </div>
 
         {/* Items list */}
         {items.length === 0 ? (
-          <div className="text-center py-16 bg-white border-2 border-black">
-            <p className="text-black font-bold text-xl">No items to track yet.</p>
-            <p className="text-black font-bold text-sm mt-2">Add items to your wishlist first!</p>
+          <div className="text-center py-16 bg-white border border-slate-200 shadow-sm rounded-2xl">
+            <p className="text-slate-900 font-bold text-xl">No items to track yet.</p>
+            <p className="text-slate-500 font-medium text-sm mt-2">Add items to your wishlist first!</p>
           </div>
         ) : (
-          <div className="bg-white border-2 border-black overflow-hidden">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden">
             <table className="w-full">
               <thead>
-                <tr className="border-b-2 border-black bg-gray-100">
-                  <th className="text-left px-6 py-4 text-sm font-bold text-black uppercase">Product</th>
-                  <th className="text-left px-6 py-4 text-sm font-bold text-black uppercase">Brand</th>
-                  <th className="text-right px-6 py-4 text-sm font-bold text-black uppercase">Price</th>
-                  <th className="text-center px-6 py-4 text-sm font-bold text-black uppercase">Status</th>
+                <tr className="border-b border-slate-200 bg-slate-50/50">
+                  <th className="text-left px-6 py-4 text-sm font-bold text-slate-500 uppercase tracking-wider">Product</th>
+                  <th className="text-left px-6 py-4 text-sm font-bold text-slate-500 uppercase tracking-wider hidden sm:table-cell">Brand</th>
+                  <th className="text-right px-6 py-4 text-sm font-bold text-slate-500 uppercase tracking-wider">Price</th>
+                  <th className="text-center px-6 py-4 text-sm font-bold text-slate-500 uppercase tracking-wider">Status</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-100">
                 {items.map((item) => (
-                  <tr key={item.id} className="border-b border-black hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{item.imageUrl || "📦"}</span>
-                        <span className="font-bold text-black text-lg">{item.productName}</span>
+                  <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-5">
+                      <div className="flex items-center gap-4">
+                        <span className="text-3xl bg-white border border-slate-100 p-2 rounded-xl shadow-sm">{item.imageUrl || "📦"}</span>
+                        <span className="font-bold text-slate-900 text-lg">{item.productName}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm font-bold text-black">{item.brand || "—"}</td>
-                    <td className="px-6 py-4 text-right font-bold text-black text-lg">₹{item.price.toLocaleString()}</td>
-                    <td className="px-6 py-4 text-center">
-                      <span className={`inline-block px-3 py-1 text-sm font-bold uppercase border-2 border-black ${
-                        item.inStock ? "bg-white" : "bg-gray-200"
+                    <td className="px-6 py-5 text-sm font-semibold text-slate-600 hidden sm:table-cell">{item.brand || "—"}</td>
+                    <td className="px-6 py-5 text-right font-bold text-slate-900 text-lg">₹{item.price.toLocaleString()}</td>
+                    <td className="px-6 py-5 text-center">
+                      <span className={`inline-flex items-center px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full ${
+                        item.inStock ? "bg-indigo-100 text-indigo-700" : "bg-rose-100 text-rose-700"
                       }`}>
                         {item.inStock ? "In Stock" : "Out of Stock"}
                       </span>

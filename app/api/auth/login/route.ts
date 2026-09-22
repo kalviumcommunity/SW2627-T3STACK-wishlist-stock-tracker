@@ -1,6 +1,6 @@
 import { compare } from "bcryptjs";
 import { NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
+import { getPrisma } from "@/lib/prisma";
 import { createSessionToken, SESSION_COOKIE } from "@/lib/auth";
 
 export async function POST(request: Request) {
@@ -9,10 +9,12 @@ export async function POST(request: Request) {
     const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
     const password = typeof body.password === "string" ? body.password : "";
 
-    const db = getDb();
-    const user = db.prepare("SELECT * FROM users WHERE email = ?").get(email) as any;
+    const prisma = getPrisma();
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
 
-    if (!user || !(await compare(password, user.password_hash))) {
+    if (!user || !(await compare(password, user.passwordHash))) {
       return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
     }
 
@@ -28,7 +30,8 @@ export async function POST(request: Request) {
       maxAge: 7 * 24 * 60 * 60,
     });
     return response;
-  } catch {
+  } catch (err) {
+    console.error("Login error:", err);
     return NextResponse.json({ error: "Unable to log in" }, { status: 500 });
   }
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
+import { getPrisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 
 export async function GET(request: Request) {
@@ -10,15 +10,19 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const db = getDb();
-    const user = db.prepare("SELECT id, name, email FROM users WHERE id = ?").get(userId) as any;
+    const prisma = getPrisma();
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, name: true, email: true },
+    });
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 401 });
     }
 
     return NextResponse.json({ user });
-  } catch {
+  } catch (err) {
+    console.error("Auth me error:", err);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

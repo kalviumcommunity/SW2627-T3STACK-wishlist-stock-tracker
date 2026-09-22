@@ -1,6 +1,6 @@
 import { hash } from "bcryptjs";
 import { NextResponse } from "next/server";
-import { getDb, generateId } from "@/lib/db";
+import { getPrisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
   try {
@@ -16,23 +16,31 @@ export async function POST(request: Request) {
       );
     }
 
-    const db = getDb();
-    const existing = db.prepare("SELECT id FROM users WHERE email = ?").get(email);
+    const prisma = getPrisma();
+    const existing = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true },
+    });
+    
     if (existing) {
       return NextResponse.json({ error: "Email is already registered" }, { status: 409 });
     }
 
-    const id = generateId();
     const passwordHash = await hash(password, 12);
-    db.prepare(
-      "INSERT INTO users (id, name, email, password_hash) VALUES (?, ?, ?, ?)"
-    ).run(id, name, email, passwordHash);
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        passwordHash,
+      },
+    });
 
     return NextResponse.json(
-      { message: "User registered successfully", user: { id, name, email } },
+      { message: "User registered successfully", user: { id: user.id, name: user.name, email: user.email } },
       { status: 201 }
     );
   } catch (err: any) {
+    console.error("Signup error:", err);
     return NextResponse.json({ error: "Unable to register user" }, { status: 500 });
   }
 }

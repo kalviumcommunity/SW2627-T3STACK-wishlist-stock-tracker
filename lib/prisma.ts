@@ -1,5 +1,6 @@
 import { PrismaClient } from "../prisma/generated/client/client";
-import { PrismaLibSql } from "@prisma/adapter-libsql";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -8,9 +9,8 @@ const globalForPrisma = globalThis as unknown as {
 export function getPrisma() {
   if (globalForPrisma.prisma) return globalForPrisma.prisma;
 
-  const dbUrl = "file:./dev.db";
-  // PrismaLibSql expects a Config object in Prisma 7, not a Client instance
-  const adapter = new PrismaLibSql({ url: dbUrl });
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  const adapter = new PrismaPg(pool);
   const prisma = new PrismaClient({ adapter });
 
   if (process.env.NODE_ENV !== "production") {

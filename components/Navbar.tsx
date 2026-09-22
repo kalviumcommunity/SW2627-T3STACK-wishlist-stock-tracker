@@ -35,7 +35,7 @@ export default function Navbar() {
 
   return (
     <nav className="flex justify-between items-center px-6 py-4 bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
-      <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent hover:opacity-80 transition-opacity">
+      <Link href="/" className="text-2xl font-bold bg-gradient-to-r text-black hover:opacity-80 transition-opacity">
         Tracker
       </Link>
       <div className="flex items-center gap-3">
@@ -72,8 +72,8 @@ export default function Navbar() {
             href="/login"
             className={`ml-2 px-6 py-2 text-sm font-semibold rounded-full transition-all duration-200 ${
               pathname === "/login"
-                ? "bg-indigo-600 text-white shadow-md"
-                : "bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+                ? "bg-black text-white shadow-md"
+                : "bg-zinc-100 text-zinc-800 hover:bg-zinc-200"
             }`}
           >
             Login

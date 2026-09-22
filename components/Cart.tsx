@@ -84,11 +84,11 @@ export default function Cart() {
               </div>
               <div className="flex items-center justify-between pt-5 border-t border-slate-100">
                 <span className="text-xl font-bold text-slate-900">Total</span>
-                <span className="text-2xl font-extrabold text-indigo-600">{formattedSubtotal}</span>
+                <span className="text-2xl font-extrabold text-black">{formattedSubtotal}</span>
               </div>
             </div>
 
-            <button className="w-full bg-indigo-600 text-white font-semibold py-4 rounded-xl shadow-md hover:bg-indigo-700 hover:shadow-lg transition-all mt-6 text-lg tracking-wide">
+            <button className="w-full bg-black text-white font-semibold py-4 rounded-xl shadow-md hover:bg-zinc-800 hover:shadow-lg transition-all mt-6 text-lg tracking-wide">
               Checkout Now
             </button>
           </>

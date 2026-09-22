@@ -53,7 +53,7 @@ export default function StocksPage() {
       <div className="mx-auto max-w-5xl">
         <header className="mb-12 text-center md:text-left border-b border-slate-200 pb-8">
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 mb-4">
-            Stock <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Tracker</span>
+            Stock <span className="bg-gradient-to-r text-black">Tracker</span>
           </h1>
           <p className="text-lg text-slate-500 max-w-2xl leading-relaxed">
             Monitor stock availability of your curated wishlist items in real-time.
@@ -67,7 +67,7 @@ export default function StocksPage() {
             <p className="text-4xl font-extrabold text-slate-900">{stats.totalItems}</p>
           </div>
           <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 transition-all hover:shadow-md">
-            <p className="text-sm font-medium text-indigo-500 uppercase tracking-wider mb-2">In Stock</p>
+            <p className="text-sm font-medium text-zinc-1000 uppercase tracking-wider mb-2">In Stock</p>
             <p className="text-4xl font-extrabold text-slate-900">{stats.inStockCount}</p>
           </div>
           <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 transition-all hover:shadow-md">
@@ -106,7 +106,7 @@ export default function StocksPage() {
                     <td className="px-6 py-5 text-right font-bold text-slate-900 text-lg">₹{item.price.toLocaleString()}</td>
                     <td className="px-6 py-5 text-center">
                       <span className={`inline-flex items-center px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full ${
-                        item.inStock ? "bg-indigo-100 text-indigo-700" : "bg-rose-100 text-rose-700"
+                        item.inStock ? "bg-zinc-200 text-zinc-800" : "bg-rose-100 text-rose-700"
                       }`}>
                         {item.inStock ? "In Stock" : "Out of Stock"}
                       </span>

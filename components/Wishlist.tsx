@@ -92,7 +92,7 @@ export default function Wishlist() {
                   <button
                     onClick={() => addToCart(item)}
                     disabled={!item.inStock}
-                    className="flex-1 px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold disabled:opacity-50 disabled:bg-slate-300 transition-colors hover:bg-indigo-700 shadow-sm"
+                    className="flex-1 px-5 py-2.5 rounded-xl bg-black text-white font-semibold disabled:opacity-50 disabled:bg-slate-300 transition-colors hover:bg-zinc-800 shadow-sm"
                   >
                     {item.inStock ? "Add to Cart" : "Out of Stock"}
                   </button>

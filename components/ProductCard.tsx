@@ -30,8 +30,8 @@ export default function ProductCard({ product }: { product: Product }) {
         onClick={() => addToWishlist(product)}
         className={`mt-6 w-full flex items-center justify-center gap-2 py-3 px-4 font-semibold rounded-xl transition-all duration-200 ${
           wishlisted
-            ? "bg-indigo-50 text-indigo-600 border border-indigo-100"
-            : "bg-indigo-600 text-white hover:bg-indigo-700 shadow-md hover:shadow-lg"
+            ? "bg-zinc-100 text-black border border-zinc-200"
+            : "bg-black text-white hover:bg-zinc-800 shadow-md hover:shadow-lg"
         }`}
       >
         {wishlisted ? "♥ In Wishlist" : "Add to Wishlist"}

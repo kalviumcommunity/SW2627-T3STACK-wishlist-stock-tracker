@@ -74,7 +74,7 @@ export default function Wishlist() {
                   )}
                   <div className="flex items-start gap-5 mt-2">
                     <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-4xl group-hover:scale-105 transition-transform">
-                      {item.image}
+                      {item.image?.startsWith("http") ? <img src={item.image} alt={item.name} className="h-full w-full object-contain p-2" /> : item.image}
                     </div>
                     <div>
                       <h3 className="font-semibold text-slate-900 text-lg leading-tight">{item.name}</h3>

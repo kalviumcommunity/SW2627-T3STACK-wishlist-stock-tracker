@@ -31,7 +31,7 @@ export default function Cart() {
             {cart.map((item) => (
               <div key={item.id} className="flex flex-col sm:flex-row items-start sm:items-center gap-5 rounded-xl border border-slate-100 p-4 bg-white shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-4xl">
-                  {item.image}
+                  {item.image?.startsWith("http") ? <img src={item.image} alt={item.name} className="h-full w-full object-contain p-2" /> : item.image}
                 </div>
                 <div className="flex-1 w-full">
                   <div className="flex items-start justify-between">

@@ -19,7 +19,7 @@ export default function ProductCard({ product }: { product: Product }) {
         </div>
 
         <div className="flex items-center justify-center h-40 bg-slate-50 rounded-xl text-7xl mb-6 group-hover:scale-105 transition-transform duration-300">
-          {product.image}
+          {product.image?.startsWith("http") ? <img src={product.image} alt={product.name} className="h-full w-full object-contain p-2" /> : product.image}
         </div>
 
         <h3 className="font-semibold text-slate-900 text-lg leading-snug">{product.name}</h3>

@@ -98,7 +98,7 @@ export default function StocksPage() {
                   <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-5">
                       <div className="flex items-center gap-4">
-                        <span className="text-3xl bg-white border border-slate-100 p-2 rounded-xl shadow-sm">{item.imageUrl || "📦"}</span>
+                        <span className="text-3xl bg-white border border-slate-100 p-2 rounded-xl shadow-sm">{item.imageUrl?.startsWith("http") ? <img src={item.imageUrl} alt={item.productName} className="h-full w-full object-contain p-1" /> : item.imageUrl || "📦"}</span>
                         <span className="font-bold text-slate-900 text-lg">{item.productName}</span>
                       </div>
                     </td>

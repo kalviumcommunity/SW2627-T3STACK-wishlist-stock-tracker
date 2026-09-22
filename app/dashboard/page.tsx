@@ -113,7 +113,7 @@ export default function DashboardPage() {
               {recentItems.map((item: any) => (
                 <div key={item.id} className="flex flex-col sm:flex-row sm:items-center gap-5 border border-slate-100 bg-slate-50/50 p-5 rounded-xl transition hover:border-zinc-200">
                   <div className="h-16 w-16 bg-white rounded-lg shadow-sm border border-slate-100 flex items-center justify-center text-3xl">
-                    {item.imageUrl || "📦"}
+                    {item.imageUrl?.startsWith("http") ? <img src={item.imageUrl} alt={item.productName} className="h-full w-full object-contain p-1" /> : item.imageUrl || "📦"}
                   </div>
                   <div className="flex-1">
                     <p className="font-bold text-slate-900 text-lg">{item.productName}</p>

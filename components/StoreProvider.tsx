@@ -37,12 +37,12 @@ export const useStore = () => {
 
 // Initial store products
 const initialProducts: Product[] = [
-  { id: "1", name: "iPhone 15 Pro", price: "₹1,29,900", priceValue: 129900, inStock: true, image: "📱", brand: "Apple", category: "Electronics" },
-  { id: "2", name: "Nike Air Max 270", price: "₹11,495", priceValue: 11495, inStock: false, image: "👟", brand: "Nike", category: "Footwear" },
-  { id: "3", name: "Sony WH-1000XM5", price: "₹29,990", priceValue: 29990, inStock: true, image: "🎧", brand: "Sony", category: "Audio" },
-  { id: "4", name: "MacBook Air M3", price: "₹1,14,900", priceValue: 114900, inStock: true, image: "💻", brand: "Apple", category: "Laptops" },
-  { id: "5", name: "Samsung Galaxy S24 Ultra", price: "₹1,29,999", priceValue: 129999, inStock: false, image: "📱", brand: "Samsung", category: "Electronics" },
-  { id: "6", name: "Apple Watch Ultra 2", price: "₹89,900", priceValue: 89900, inStock: true, image: "⌚", brand: "Apple", category: "Wearables" }
+  { id: "1", name: "iPhone 15 Pro", price: "₹1,29,900", priceValue: 129900, inStock: true, image: "https://store.storeimages.cdn-apple.com/4668/as-images.apple.com/is/iphone-15-pro-finish-select-202309-6-1inch-bluetitanium?wid=256&hei=256&fmt=webp", brand: "Apple", category: "Electronics" },
+  { id: "2", name: "Nike Air Max 270", price: "₹11,495", priceValue: 11495, inStock: false, image: "https://static.nike.com/a/images/t_default/1d670f4a-25c2-4ebc-a808-1f582f3cde08/air-max-270-mens-shoes-KkLcGR.png", brand: "Nike", category: "Footwear" },
+  { id: "3", name: "Sony WH-1000XM5", price: "₹29,990", priceValue: 29990, inStock: true, image: "https://media.croma.com/image/dispatch/id/EQB_165977/size/256/w/256", brand: "Sony", category: "Audio" },
+  { id: "4", name: "MacBook Air M3", price: "₹1,14,900", priceValue: 114900, inStock: true, image: "https://store.storeimages.cdn-apple.com/4668/as-images.apple.com/is/mba13-m3-spacegray-select-202402?wid=256&hei=256&fmt=webp", brand: "Apple", category: "Laptops" },
+  { id: "5", name: "Samsung Galaxy S24 Ultra", price: "₹1,29,999", priceValue: 129999, inStock: false, image: "https://images.samsung.com/is/image/samsung/p6pim/in/2401/gallery/in-galaxy-s24-s928-sm-s928bztqins-thumb-539573351", brand: "Samsung", category: "Electronics" },
+  { id: "6", name: "Apple Watch Ultra 2", price: "₹89,900", priceValue: 89900, inStock: true, image: "https://store.storeimages.cdn-apple.com/4668/as-images.apple.com/is/watch-ultra2-titanium-ocean-blue-cell-202309?wid=256&hei=256&fmt=webp", brand: "Apple", category: "Wearables" }
 ];
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {

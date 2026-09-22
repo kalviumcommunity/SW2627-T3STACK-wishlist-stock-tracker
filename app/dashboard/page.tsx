@@ -36,79 +36,94 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex justify-center items-center py-32">
-        <span className="font-bold text-black text-xl">Loading Dashboard...</span>
+        <span className="font-semibold text-slate-600 text-lg">Loading Dashboard...</span>
       </div>
     );
   }
 
   return (
-    <div className="py-12 md:py-20">
-      <div className="mx-auto max-w-5xl px-6">
-        <header className="mb-10 border-b-2 border-black pb-4">
-          <h1 className="text-4xl font-bold text-black">Dashboard</h1>
-          <p className="mt-3 text-lg text-black font-medium">Overview of your wishlist and shopping activity.</p>
+    <div className="py-12 md:py-20 px-6 max-w-7xl mx-auto">
+      <div className="mx-auto max-w-6xl">
+        <header className="mb-12 text-center md:text-left border-b border-slate-200 pb-8">
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 mb-4">
+            Welcome to your{" "}
+            <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Dashboard</span>
+          </h1>
+          <p className="text-lg text-slate-500 max-w-2xl leading-relaxed">
+            Overview of your curated wishlist and shopping activity.
+          </p>
         </header>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-          <div className="bg-white border border-black p-6">
-            <p className="text-sm font-bold uppercase mb-2">Wishlist Items</p>
-            <p className="text-4xl font-bold text-black">{stats.totalItems}</p>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 transition-all hover:shadow-md">
+            <p className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-2">Wishlist Items</p>
+            <p className="text-4xl font-extrabold text-slate-900">{stats.totalItems}</p>
           </div>
-          <div className="bg-white border border-black p-6">
-            <p className="text-sm font-bold uppercase mb-2">In Stock</p>
-            <p className="text-4xl font-bold text-black">{stats.inStockCount}</p>
+          <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 transition-all hover:shadow-md">
+            <p className="text-sm font-medium text-indigo-500 uppercase tracking-wider mb-2">In Stock</p>
+            <p className="text-4xl font-extrabold text-slate-900">{stats.inStockCount}</p>
           </div>
-          <div className="bg-white border border-black p-6">
-            <p className="text-sm font-bold uppercase mb-2">Out of Stock</p>
-            <p className="text-4xl font-bold text-black">{stats.outOfStockCount}</p>
+          <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 transition-all hover:shadow-md">
+            <p className="text-sm font-medium text-rose-500 uppercase tracking-wider mb-2">Out of Stock</p>
+            <p className="text-4xl font-extrabold text-slate-900">{stats.outOfStockCount}</p>
           </div>
-          <div className="bg-white border border-black p-6">
-            <p className="text-sm font-bold uppercase mb-2">Cart Items</p>
-            <p className="text-4xl font-bold text-black">{cartCount}</p>
+          <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 transition-all hover:shadow-md">
+            <p className="text-sm font-medium text-violet-500 uppercase tracking-wider mb-2">Cart Items</p>
+            <p className="text-4xl font-extrabold text-slate-900">{cartCount}</p>
           </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           <Link
             href="/wishlist"
-            className="block border border-black bg-black p-6 text-white hover:bg-gray-800"
+            className="block group bg-slate-900 rounded-2xl p-8 text-white transition-all hover:bg-slate-800 hover:scale-[1.02] hover:shadow-xl"
           >
-            <h3 className="text-2xl font-bold">Manage Wishlist</h3>
-            <p className="text-white mt-2 font-medium">Add, remove, and track your favorite products</p>
+            <h3 className="text-2xl font-bold mb-3 flex items-center gap-2">
+              <span className="bg-white/20 p-2 rounded-lg">✨</span> Manage Wishlist
+            </h3>
+            <p className="text-slate-300 font-medium leading-relaxed">Add, remove, and track your favorite products seamlessly.</p>
           </Link>
           <Link
             href="/stocks"
-            className="block border border-black bg-black p-6 text-white hover:bg-gray-800"
+            className="block group bg-indigo-600 rounded-2xl p-8 text-white transition-all hover:bg-indigo-700 hover:scale-[1.02] hover:shadow-xl"
           >
-            <h3 className="text-2xl font-bold">Stock Tracker</h3>
-            <p className="text-white mt-2 font-medium">Monitor which items are in stock or sold out</p>
+            <h3 className="text-2xl font-bold mb-3 flex items-center gap-2">
+              <span className="bg-white/20 p-2 rounded-lg">📈</span> Stock Tracker
+            </h3>
+            <p className="text-indigo-100 font-medium leading-relaxed">Monitor exactly which items are in stock or sold out.</p>
           </Link>
           <Link
             href="/cart"
-            className="block border border-black bg-black p-6 text-white hover:bg-gray-800"
+            className="block group bg-violet-600 rounded-2xl p-8 text-white transition-all hover:bg-violet-700 hover:scale-[1.02] hover:shadow-xl"
           >
-            <h3 className="text-2xl font-bold">Your Cart</h3>
-            <p className="text-white mt-2 font-medium">Review your items and proceed to checkout</p>
+            <h3 className="text-2xl font-bold mb-3 flex items-center gap-2">
+              <span className="bg-white/20 p-2 rounded-lg">🛒</span> Your Cart
+            </h3>
+            <p className="text-violet-100 font-medium leading-relaxed">Review your prepared items and proceed to checkout.</p>
           </Link>
         </div>
 
         {/* Recent Items */}
         {recentItems.length > 0 && (
-          <div className="bg-white border border-black p-6 md:p-8">
-            <h2 className="text-2xl font-bold text-black mb-6">Recent Wishlist Items</h2>
+          <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 md:p-8 mt-12">
+            <h2 className="text-2xl font-extrabold text-slate-900 mb-6">Recent Wishlist Items</h2>
             <div className="flex flex-col gap-4">
               {recentItems.map((item: any) => (
-                <div key={item.id} className="flex items-center gap-4 border border-black bg-gray-50 p-4">
-                  <span className="text-3xl">{item.imageUrl || "📦"}</span>
-                  <div className="flex-1">
-                    <p className="font-bold text-black text-lg">{item.productName}</p>
-                    <p className="text-sm font-bold">{item.brand || "No brand"} · ₹{item.price?.toLocaleString()}</p>
+                <div key={item.id} className="flex flex-col sm:flex-row sm:items-center gap-5 border border-slate-100 bg-slate-50/50 p-5 rounded-xl transition hover:border-indigo-200">
+                  <div className="h-16 w-16 bg-white rounded-lg shadow-sm border border-slate-100 flex items-center justify-center text-3xl">
+                    {item.imageUrl || "📦"}
                   </div>
-                  <span className="border border-black bg-white px-3 py-1 font-bold text-sm uppercase">
-                    {item.inStock ? "In Stock" : "Out of Stock"}
-                  </span>
+                  <div className="flex-1">
+                    <p className="font-bold text-slate-900 text-lg">{item.productName}</p>
+                    <p className="text-slate-500 font-medium mt-1">{item.brand || "No brand"} • <span className="text-indigo-600">₹{item.price?.toLocaleString()}</span></p>
+                  </div>
+                  <div className="mt-3 sm:mt-0">
+                    <span className={`px-4 py-1.5 rounded-full font-bold text-sm tracking-wide ${item.inStock ? "bg-indigo-100 text-indigo-700" : "bg-rose-100 text-rose-700"}`}>
+                      {item.inStock ? "IN STOCK" : "OUT OF STOCK"}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
